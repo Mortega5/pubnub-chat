@@ -1,0 +1,161 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../pubnub-element/pubnub-element.html">
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+<pubnub-chat></pubnub-chat>
+
+Example:
+
+<pubnub-chat>
+<h2>Hello pubnub-chat</h2>
+</pubnub-chat>
+
+@demo demo/index.html
+@hero hero.svg
+-->
+
+<dom-module id="pubnub-chat">
+  <template>
+    <style>
+
+    </style>
+
+    <!-- Use your own publish_key and subscribe_key please -->
+    <core-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}">
+      <core-pubnub-subscribe channel="demo_tutorial" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error">
+        <core-pubnub-publish channel="demo_tutorial" message="" id="pub" on-error="error"></core-pubnub-publish>
+        <core-pubnub-history channel="demo_tutorial" count="30" on-success="historyRetrieved" on-error="error"></core-pubnub-history>
+      </core-pubnub-subscribe>
+    </core-pubnub>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'pubnub-chat',
+
+      properties: {
+        publish_key: {
+          type: String,
+          reflectToAttribute: true
+        },
+        subscribe_key :{
+          type: String,
+          reflectToAttribute: true
+        },
+        uuid: {
+          type: String,
+          reflectToAttribute: true
+        },
+        pastMsgs: {
+          type: Object,
+          value: []
+        },
+        avatar: {
+          type: String,
+          reflectToAttribute: true
+        },
+        onlineUuids: {
+          type: Object,
+          value: []
+        },
+        messageList: {
+          type: Object,
+          value: []
+        }
+      },
+
+      // Element Lifecycle
+
+      ready: function() {
+      },
+
+      subscribeCallback: function(event){
+        if(this.$.sub.messages.length > 0) {
+          this.displayChatList(pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)));
+        }
+      },
+      presenceChanged: function(){
+        var i = 0;
+        var l = this.$.sub.presence.length;
+        var d = this.$.sub.presence[l - 1];
+
+        // how many users
+        this.occupancy = d.occupancy;
+
+        // who are online
+        if(d.action === 'join') {
+          if(d.uuid.length > 35) { // console
+            d.uuid = 'the-mighty-big-cat';
+          }
+          this.onlineUuids.push(d.uuid);
+        } else {
+          var idx = this.onlineUuids.indexOf(d.uuid);
+          if(idx > -1) {
+            this.onlineUuids.splice(idx, 1);
+          }
+        }
+
+        i++;
+
+        // display at the left column
+        this.cats = this.onlineUuids;
+        // update the status at the main column
+        if(this.messageList.length > 0) {
+          this.messageList = this.getListWithOnlineStatus(this.messageList);
+        }
+      },
+      error: function(e){
+        console.log(e);
+
+      },
+      historyRetrieved: function(e){
+        if(e.detail[0].length > 0) {
+          this.pastMsgs = this.getListWithOnlineStatus(e.detail[0]);
+          this.displayChatList(this.pastMsgs);
+        }
+      },
+      displayChatList: function(list){
+        this.messageList = list;
+
+        // No tengpo claro como funciona
+        //this.async(showNewest);
+
+      },
+      showNewest: function(){
+        var chatDiv = document.querySelector('.chat-list');
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      },
+
+      getListWithOnlineStatus: function(list) {
+        [].forEach.call(list, function(l) {
+          // sanitize avatars
+          var name = l.uuid;
+          /// El avatar tiene que cogerse de una peticion, ver como cogerla
+          l.avatar = this.avatar;
+
+          if(this.onlineUuids.indexOf(l.uuid) > -1) {
+            l.status = 'online';
+          } else {
+            l.status = 'offline';
+          }
+        });
+        return list;
+      },
+
+    });
+  </script>
+</dom-module>
