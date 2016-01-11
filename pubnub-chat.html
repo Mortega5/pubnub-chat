@@ -10,6 +10,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../pubnub-element/pubnub-element.html">
+<link rel="import" href="../paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../iron-flex-layout/classes/iron-flex-layout.html">
+<link rel="import" href="../paper-styles/paper-styles.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import "href="../iron-icon/iron-icon.html">
+<link rel="import "href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-input/paper-input.html">
+
+
 <!--
 An element providing a solution to no problem in particular.
 
@@ -29,17 +39,182 @@ Example:
 
 <dom-module id="pubnub-chat">
   <template>
-    <style>
+    <style is="custom-style">
+      .structure {
+        width: 500px;
+        border: 1px solid black;
+      }
+      .body {
+        width: 100%;
+        height: 450px;
+      }
+      .bar {
+        height: 100%;
+        border-right: 2px solid;
+        border-right-color: var(--paper-grey-600);
+      }
+      .bar .avatar {
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        margin-top:25px;
+        margin-left: 5px;
+        border-color: var(--paper-pink-900);
+        border: 2px solid;
+      }
+      .bar .userInfo{
+        padding: 10px;
+        min-height: 100px;
+        background-image:url('http://www.designbolts.com/wp-content/uploads/2014/03/Yellow-blur-background1.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+        box-shadow: 
 
+      }
+      .bar .userInfo p {
+        font-size: 18px;
+        text-transform: capitalize;
+      }
+      .bar .userList {
+        margin:5px;
+        color: grey;
+        background-color: var(--paper-grey-50);
+        max-height: 100%;
+        overflow-y: auto;
+      }
+      .bar .userList .user {
+        margin:10px;
+        color: black;
+      }
+      .header {
+        background-color: var(--paper-red-400);
+        color:white;
+        padding: 10px;
+      }
+      .content {
+        background-color: var(--paper-grey-100);
+      }
+      .content .msgs {
+        background-color: var(--paper-grey-100);
+      }
+
+      .msgs {
+        overflow-y: auto;
+        word-break: break-all;
+      }
+
+      .msgs .message {
+        margin: auto;
+        padding: 12px 5px;
+        border-bottom: 1px solid;
+        border-bottom-color: var(--paper-grey-300);
+      }
+      .msgs .message .username {
+        font-size: 16px;
+        margin: 5px 0px;
+        font-weight: bold;
+      }
+      .msgs .message .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background-size: cover;
+      }
+      .msgs .message .text {
+        padding-left: 8px;
+      }
+      .center {
+        margin:auto;
+      }
+      #textInput {
+        margin: auto 8px;
+        --paper-input-container-focus-color: var(--paper-red-800);
+      }
+      #textInput paper-icon-button {
+        color: var(--paper-red-800);
+      }
+      .status {
+        position: relative;
+        top: 35px;
+        left: 35px;
+        border-radius: 50%;
+        width: 14px;
+        height: 14px;
+        background-color: #7EDF25;
+        display: none;
+      }
+      .status.online {
+        display: block;
+      }
     </style>
 
     <!-- Use your own publish_key and subscribe_key please -->
     <core-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}">
-      <core-pubnub-subscribe channel="demo_tutorial" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error">
-        <core-pubnub-publish channel="demo_tutorial" message="" id="pub" on-error="error"></core-pubnub-publish>
-        <core-pubnub-history channel="demo_tutorial" count="30" on-success="historyRetrieved" on-error="error"></core-pubnub-history>
+      <core-pubnub-subscribe channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error">
+        <core-pubnub-publish channel="{{channel}}" message="" id="pub" on-error="error"></core-pubnub-publish>
+        <core-pubnub-history channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></core-pubnub-history>
       </core-pubnub-subscribe>
     </core-pubnub>
+    <div class="vertical layout structure">
+      <div class="header horizontal layout">
+        <paper-icon-button on-tap="toogleBar" icon="menu"></paper-icon-button>
+        <p class="flex center">{{channel}}</p>
+        <div class="center">
+          <iron-icon icon="account-circle"></iron-icon>
+          <span>{{occupancy}}</span>
+        </div>
+      </div>
+
+      <div class="horizontal layout body">
+        <div hidden="{{is_hide}}" class="bar vertical layout">
+          <paper-material elevation=1>
+            <div class="userInfo">
+              <img src="{{avatar}}" class="avatar">
+              <p class="center">{{uuid}}</p>
+            </div>
+          </paper-material>
+          <div class="userList flex">
+            <p>ONLINE NOW</p>
+            <template is="dom-repeat" items="{{onlineUuids}}">
+              <p class="user">{{item}}</p>
+            </template>
+          </div>
+        </div>
+
+        <div class="content vertical layout flex">
+          <div id="content" class="msgs flex">
+            <template is="dom-repeat" items="{{messageList}}" observe="">
+              <div class="message horizontal layout">
+                <div class="avatar" style$="background-image: url({{item.avatar}})">
+                  <div class$="status {{item.status}}"></div>
+                </div>
+                <div class="flex vertical layout">
+                  <div class="horizontal layout">
+                    <span class="username flex">{{item.uuid}}({{item.status}})</span>
+                    <span class="time">{{item.time}}</span>
+                  </div>
+                  <span class="text">{{item.text}}</span>
+                </div>
+              </div>
+            </template>
+
+          </div>
+          <paper-input id="textInput" label="Type message..." autofocus no-label-float on-keyup="_checkEnter">
+            <paper-icon-button suffix icon="send" on-tap="publish"></paper-icon-button>
+          </paper-input>
+        </div>
+      </div>
+    </div>
+    <!-- TODO Visualización-->
+    <!--    <paper-header-panel>
+<div class="paper-header">{{channel}} ({{uuid}})</div>
+<div class="content history">
+<template is="dom-repeat" items="{{pastMsgs}}">
+<p class="post">{{item.text}}</p>
+</template>
+</div>
+</paper-header-panel>-->
 
   </template>
 
@@ -61,35 +236,55 @@ Example:
           reflectToAttribute: true
         },
         pastMsgs: {
-          type: Object,
-          value: []
+          type: Array,
+          value: function(){return []}
         },
         avatar: {
           type: String,
           reflectToAttribute: true
         },
         onlineUuids: {
-          type: Object,
-          value: []
+          type: Array,
+          value: function(){return []}
         },
         messageList: {
-          type: Object,
-          value: []
+          type: Array,
+          value: function(){return []},
+          observer: '_scrollToBottom'
+        },
+        channel: {
+          type: String,
+          value: "polymer-chat"
+        },
+        is_hide: {
+          type: Boolean,
+          value: false
+        },
+        avatar: {
+          type: String,
+          value: 'https://s-media-cache-ak0.pinimg.com/236x/a7/e8/fb/a7e8fbe6ccae9e568d6324f3323ee840.jpg'
         }
       },
 
       // Element Lifecycle
 
       ready: function() {
+        var back = this;
       },
-
+      toogleBar: function(){
+        this.is_hide = !this.is_hide;
+      },
+      _scrollToBottom: function(oldvalue, newvalue){
+        this.$.content.scrollTop = this.$.content.scrollHeight;
+      },
       subscribeCallback: function(event){
+        console.log("Vuelve de subscribe: ", event);
         if(this.$.sub.messages.length > 0) {
-          this.displayChatList(pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)));
+          this.displayChatList(this.pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)));
         }
+        var back = this;
       },
       presenceChanged: function(){
-        var i = 0;
         var l = this.$.sub.presence.length;
         var d = this.$.sub.presence[l - 1];
 
@@ -98,24 +293,18 @@ Example:
 
         // who are online
         if(d.action === 'join') {
-          if(d.uuid.length > 35) { // console
-            d.uuid = 'the-mighty-big-cat';
-          }
-          this.onlineUuids.push(d.uuid);
+          this.push("onlineUuids", d.uuid);
         } else {
           var idx = this.onlineUuids.indexOf(d.uuid);
           if(idx > -1) {
-            this.onlineUuids.splice(idx, 1);
+            this.splice("onlineUuids",idx, 1);
           }
         }
-
-        i++;
-
-        // display at the left column
-        this.cats = this.onlineUuids;
         // update the status at the main column
+        // NOTE No se muy bien que hace
         if(this.messageList.length > 0) {
-          this.messageList = this.getListWithOnlineStatus(this.messageList);
+          this.set('messageList',this.getListWithOnlineStatus(this.messageList));
+          this._test();
         }
       },
       error: function(e){
@@ -123,6 +312,7 @@ Example:
 
       },
       historyRetrieved: function(e){
+        console.log("Llamado por history");
         if(e.detail[0].length > 0) {
           this.pastMsgs = this.getListWithOnlineStatus(e.detail[0]);
           this.displayChatList(this.pastMsgs);
@@ -130,24 +320,36 @@ Example:
       },
       displayChatList: function(list){
         this.messageList = list;
-
-        // No tengpo claro como funciona
-        //this.async(showNewest);
+        this._test();
+        this.async(this._scrollToBottom);
 
       },
-      showNewest: function(){
-        var chatDiv = document.querySelector('.chat-list');
-        chatDiv.scrollTop = chatDiv.scrollHeight;
+      publish: function() {
+        if(!this.$.textInput) return;
+
+        this.$.pub.message = {
+          uuid: this.uuid,
+          avatar: this.avatar,
+          color: "red",
+          text: this.$.textInput.value,
+          timestamp: new Date().toISOString()
+        };
+
+        this.$.pub.publish();
+        this.$.textInput.value = '';
       },
 
       getListWithOnlineStatus: function(list) {
+        var back = this;
         [].forEach.call(list, function(l) {
           // sanitize avatars
           var name = l.uuid;
-          /// El avatar tiene que cogerse de una peticion, ver como cogerla
-          l.avatar = this.avatar;
-
-          if(this.onlineUuids.indexOf(l.uuid) > -1) {
+          /// El avatar tiene que cogerse de una peticion, ver como coger
+          // Se debe coger del servidor
+          l.avatar = back.avatar;
+          // Default avatar
+          l.avatar = 'http://blog.ubi.com/app/uploads/2014/02/rabbidstoilet.jpg';
+          if(back.onlineUuids && back.onlineUuids.indexOf(l.uuid) > -1) {
             l.status = 'online';
           } else {
             l.status = 'offline';
@@ -155,6 +357,72 @@ Example:
         });
         return list;
       },
+      // TODO it does not work correctly
+      _changeTime: function(update){
+        var date = new Date(update);
+        var current_date = new Date();
+        var time;
+        /* Years */
+        if ((current_date.getFullYear() - date.getFullYear()) != 0) {
+          var dif = current_date.getFullYear() - date.getFullYear()
+          time = dif==1 ? dif + " year" : dif + " years";
+          /* Months */
+        } else if ((current_date.getMonth() - date.getMonth()) != 0) { 
+          var dif = current_date.getMonth() - date.getMonth();
+          time = dif==1 ? dif + " month" : dif + " months";
+          /* Days */
+        } else if((current_date.getDate() - date.getDate()) == 0 ){
+          if((current_date.getHours() - date.getHours()) == 0 ){
+            if( (current_date.getMinutes() - date.getMinutes()) == 0 ){
+              time = current_date.getSeconds() - date.getSeconds();
+              if (time === 0){
+                time= "just now";
+              }else {
+                time += time == 1? " second": " seconds";
+              }
+
+            }
+            else{
+              time = current_date.getMinutes() - date.getMinutes();
+              time += time == 1? " minute":  " minutes";
+            }
+          }
+          else{
+            if (current_date.getHours() - date.getHours() == 1) {
+              time = current_date.getHours() - date.getHours()+" hour";
+            }else {
+              time = current_date.getHours() - date.getHours()+" hours";
+            }
+          }
+        }
+        else if( ((current_date.getDate() - date.getDate()) < 8) && ( (current_date.getDate() - date.getDate()) > 0)){
+          if( (current_date.getDate() - date.getDate()) == 1){
+            time = current_date.getDate() - date.getDate()+" day";
+          }
+          else{
+            time = current_date.getDate() - date.getDate()+" days";
+          }
+        }
+        else{
+          var month = ["jan","feb","mar","apr", "may","jun","jul","aug","sep","oct","nov","dec"];
+          time = date.getDate()+" "+month[date.getMonth()] + ". "+date.getFullYear();
+        }
+        if (time !== "just now"){
+          time += " ago";
+        }
+        return time;
+      },
+      _checkEnter: function(e){
+        if(e.keyCode === 13 || e.charCode === 13) {
+          this.publish();
+        }
+      },
+      
+      _test: function(){
+        for(i=0;i<this.messageList;i++){
+          this.set("messageList.time", this._changeTime(this.messageList[i].timestamp));
+        }
+      }
 
     });
   </script>
