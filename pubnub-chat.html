@@ -303,8 +303,8 @@ Example:
         // update the status at the main column
         // NOTE No se muy bien que hace
         if(this.messageList.length > 0) {
-          this.set('messageList',this.getListWithOnlineStatus(this.messageList));
-          this._test();
+          this.set('messageList', this.getListWithOnlineStatus(this.messageList));
+          this._changeTime();
         }
       },
       error: function(e){
@@ -320,7 +320,7 @@ Example:
       },
       displayChatList: function(list){
         this.messageList = list;
-        this._test();
+        this._changeTime();
         this.async(this._scrollToBottom);
 
       },
@@ -358,71 +358,67 @@ Example:
         return list;
       },
       // TODO it does not work correctly
-      _changeTime: function(update){
-        var date = new Date(update);
-        var current_date = new Date();
-        var time;
-        /* Years */
-        if ((current_date.getFullYear() - date.getFullYear()) != 0) {
-          var dif = current_date.getFullYear() - date.getFullYear()
-          time = dif==1 ? dif + " year" : dif + " years";
-          /* Months */
-        } else if ((current_date.getMonth() - date.getMonth()) != 0) { 
-          var dif = current_date.getMonth() - date.getMonth();
-          time = dif==1 ? dif + " month" : dif + " months";
-          /* Days */
-        } else if((current_date.getDate() - date.getDate()) == 0 ){
-          if((current_date.getHours() - date.getHours()) == 0 ){
-            if( (current_date.getMinutes() - date.getMinutes()) == 0 ){
-              time = current_date.getSeconds() - date.getSeconds();
-              if (time === 0){
-                time= "just now";
-              }else {
-                time += time == 1? " second": " seconds";
-              }
+      _changeTime: function(){
+        for (i=0;i<this.messageList.length;i++){
+          var date = new Date(this.messageList[i].timestamp);
+          var current_date = new Date();
+          var time;
+          /* Years */
+          if ((current_date.getFullYear() - date.getFullYear()) != 0) {
+            var dif = current_date.getFullYear() - date.getFullYear()
+            time = dif==1 ? dif + " year" : dif + " years";
+            /* Months */
+          } else if ((current_date.getMonth() - date.getMonth()) != 0) { 
+            var dif = current_date.getMonth() - date.getMonth();
+            time = dif==1 ? dif + " month" : dif + " months";
+            /* Days */
+          } else if((current_date.getDate() - date.getDate()) == 0 ){
+            if((current_date.getHours() - date.getHours()) == 0 ){
+              if( (current_date.getMinutes() - date.getMinutes()) == 0 ){
+                time = current_date.getSeconds() - date.getSeconds();
+                if (time === 0){
+                  time= "just now";
+                }else {
+                  time += time == 1? " second": " seconds";
+                }
 
+              }
+              else{
+                time = current_date.getMinutes() - date.getMinutes();
+                time += time == 1? " minute":  " minutes";
+              }
             }
             else{
-              time = current_date.getMinutes() - date.getMinutes();
-              time += time == 1? " minute":  " minutes";
+              if (current_date.getHours() - date.getHours() == 1) {
+                time = current_date.getHours() - date.getHours()+" hour";
+              }else {
+                time = current_date.getHours() - date.getHours()+" hours";
+              }
+            }
+          }
+          else if( ((current_date.getDate() - date.getDate()) < 8) && ( (current_date.getDate() - date.getDate()) > 0)){
+            if( (current_date.getDate() - date.getDate()) == 1){
+              time = current_date.getDate() - date.getDate()+" day";
+            }
+            else{
+              time = current_date.getDate() - date.getDate()+" days";
             }
           }
           else{
-            if (current_date.getHours() - date.getHours() == 1) {
-              time = current_date.getHours() - date.getHours()+" hour";
-            }else {
-              time = current_date.getHours() - date.getHours()+" hours";
-            }
+            var month = ["jan","feb","mar","apr", "may","jun","jul","aug","sep","oct","nov","dec"];
+            time = date.getDate()+" "+month[date.getMonth()] + ". "+date.getFullYear();
           }
-        }
-        else if( ((current_date.getDate() - date.getDate()) < 8) && ( (current_date.getDate() - date.getDate()) > 0)){
-          if( (current_date.getDate() - date.getDate()) == 1){
-            time = current_date.getDate() - date.getDate()+" day";
+          if (time !== "just now"){
+            time += " ago";
           }
-          else{
-            time = current_date.getDate() - date.getDate()+" days";
-          }
+          this.set('messageList.'+i+'.time', time);
         }
-        else{
-          var month = ["jan","feb","mar","apr", "may","jun","jul","aug","sep","oct","nov","dec"];
-          time = date.getDate()+" "+month[date.getMonth()] + ". "+date.getFullYear();
-        }
-        if (time !== "just now"){
-          time += " ago";
-        }
-        return time;
       },
       _checkEnter: function(e){
         if(e.keyCode === 13 || e.charCode === 13) {
           this.publish();
         }
       },
-      
-      _test: function(){
-        for(i=0;i<this.messageList;i++){
-          this.set("messageList.time", this._changeTime(this.messageList[i].timestamp));
-        }
-      }
 
     });
   </script>
