@@ -42,7 +42,8 @@ Example:
     <style is="custom-style">
       .structure {
         width: 500px;
-        border: 1px solid black;
+        border: 2px solid #797979;
+        border-radius: 5px;
       }
       .body {
         width: 100%;
@@ -52,6 +53,13 @@ Example:
         height: 100%;
         border-right: 2px solid;
         border-right-color: var(--paper-grey-600);
+        opacity: 1;
+        width: 150px;
+        transition: width 0.3s ease;
+      }
+      .bar[hide] {
+        width: 0 !important;
+        opacity: 0;
       }
       .bar .avatar {
         border-radius: 50%;
@@ -65,7 +73,7 @@ Example:
       .bar .userInfo{
         padding: 10px;
         min-height: 100px;
-        background-image:url('http://www.designbolts.com/wp-content/uploads/2014/03/Yellow-blur-background1.jpg');
+        background-image:url('images/background.jpg');
         background-size: cover;
         background-repeat: no-repeat;
         box-shadow: 
@@ -100,7 +108,7 @@ Example:
 
       .msgs {
         overflow-y: auto;
-        word-break: break-all;
+        word-break: keep-all;
       }
 
       .msgs .message {
@@ -113,13 +121,20 @@ Example:
         font-size: 16px;
         margin: 5px 0px;
         font-weight: bold;
+        text-transform: capitalize;
+      }
+      .msgs .message .time {
+        font-size: 12px;
+        color: var(--paper-grey-700);
       }
       .msgs .message .avatar {
         width: 50px;
         height: 50px;
         border-radius: 50%;
         margin-right: 10px;
-        background-size: cover;
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        border:2px solid #bbb;
       }
       .msgs .message .text {
         padding-left: 8px;
@@ -167,7 +182,7 @@ Example:
       </div>
 
       <div class="horizontal layout body">
-        <div hidden="{{is_hide}}" class="bar vertical layout">
+        <div hide$="{{menu_hidden}}" class="bar vertical layout">
           <paper-material elevation=1>
             <div class="userInfo">
               <img src="{{avatar}}" class="avatar">
@@ -191,7 +206,7 @@ Example:
                 </div>
                 <div class="flex vertical layout">
                   <div class="horizontal layout">
-                    <span class="username flex">{{item.uuid}}({{item.status}})</span>
+                    <span class="username flex">{{item.uuid}}</span>
                     <span class="time">{{item.time}}</span>
                   </div>
                   <span class="text">{{item.text}}</span>
@@ -247,13 +262,16 @@ Example:
           type: String,
           value: "polymer-chat"
         },
-        is_hide: {
+        menu_hidden: {
           type: Boolean,
-          value: false
+          value: false,
+          reflectToAttribute:true
+          
         },
         avatar: {
           type: String,
-          value: 'https://s-media-cache-ak0.pinimg.com/236x/a7/e8/fb/a7e8fbe6ccae9e568d6324f3323ee840.jpg'
+          value: 'https://s-media-cache-ak0.pinimg.com/236x/a7/e8/fb/a7e8fbe6ccae9e568d6324f3323ee840.jpg',
+          reflectToAttribute:true
         }
       },
 
@@ -263,13 +281,12 @@ Example:
         var back = this;
       },
       toogleBar: function(){
-        this.is_hide = !this.is_hide;
+        this.menu_hidden = !this.menu_hidden;
       },
       _scrollToBottom: function(oldvalue, newvalue){
         this.$.content.scrollTop = this.$.content.scrollHeight;
       },
       subscribeCallback: function(event){
-        console.log("Vuelve de subscribe: ", event);
         if(this.$.sub.messages.length > 0) {
           this.displayChatList(this.pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)));
         }
@@ -291,8 +308,6 @@ Example:
             this.splice("onlineUuids",idx, 1);
           }
         }
-        // update the status at the main column
-        // NOTE No se muy bien que hace
         if(this.messageList.length > 0) {
           this.set('messageList', this.getListWithOnlineStatus(this.messageList));
           this._changeTime();
@@ -303,7 +318,6 @@ Example:
 
       },
       historyRetrieved: function(e){
-        console.log("Llamado por history");
         if(e.detail[0].length > 0) {
           this.pastMsgs = this.getListWithOnlineStatus(e.detail[0]);
           this.displayChatList(this.pastMsgs);
@@ -339,7 +353,6 @@ Example:
           // Se debe coger del servidor
           l.avatar = back.avatar;
           // Default avatar
-          l.avatar = 'http://blog.ubi.com/app/uploads/2014/02/rabbidstoilet.jpg';
           if(back.onlineUuids && back.onlineUuids.indexOf(l.uuid) > -1) {
             l.status = 'online';
           } else {
