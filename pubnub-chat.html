@@ -206,15 +206,6 @@ Example:
         </div>
       </div>
     </div>
-    <!-- TODO Visualización-->
-    <!--    <paper-header-panel>
-<div class="paper-header">{{channel}} ({{uuid}})</div>
-<div class="content history">
-<template is="dom-repeat" items="{{pastMsgs}}">
-<p class="post">{{item.text}}</p>
-</template>
-</div>
-</paper-header-panel>-->
 
   </template>
 
@@ -325,7 +316,7 @@ Example:
 
       },
       publish: function() {
-        if(!this.$.textInput) return;
+        if(!this.$.textInput.value) return;
 
         this.$.pub.message = {
           uuid: this.uuid,
