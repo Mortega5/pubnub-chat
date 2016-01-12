@@ -395,8 +395,8 @@ Place it inside of a `<core-pubnub>` element.
         this.sub = function() {
           self.pubnub.subscribe({
             channel: self.channel,
-            timetoken: self.timetoken,
-            restore: self.restore,
+/*            timetoken: self.timetoken,
+            restore: self.restore,*/
             connect: function (m) {
               // Fire Connect Event.
               // console.log("connect");
@@ -423,14 +423,14 @@ Place it inside of a `<core-pubnub>` element.
               // console.log(self.messages);
               self.fire('callback', m);
             },
-            presence: function(m) {
+/*           presence: function(m) {
               // Fire Presence Event.
               // console.log("presence");
               // console.log(m);
               //self.presence.push(m);  // Deprecated
               self.push('presence', m); // Polymer method, will trigger observers
               self.fire('presence', m);
-            },
+            }/*,
             reconnect: function(m) {
               // Fire Reconnect Event.
               // console.log("reconnect");
@@ -438,7 +438,7 @@ Place it inside of a `<core-pubnub>` element.
             },
             windowing: self.windowing,
             heartbeat: self.heartbeat,
-            state: self.state
+            state: self.state*/
           });
         };
         var onReady = function(e) {

@@ -66,7 +66,6 @@ Example:
         width: 60px;
         height: 60px;
         margin-top:25px;
-        margin-left: 5px;
         border-color: var(--paper-pink-900);
         border: 2px solid;
       }
@@ -76,12 +75,12 @@ Example:
         background-image:url('images/background.jpg');
         background-size: cover;
         background-repeat: no-repeat;
-        box-shadow: 
 
       }
       .bar .userInfo p {
         font-size: 18px;
         text-transform: capitalize;
+        color: white;
       }
       .bar .userList {
         margin:5px;
@@ -92,7 +91,6 @@ Example:
       }
       .bar .userList .user {
         margin:10px;
-        color: black;
       }
       .header {
         background-color: var(--paper-red-400);
@@ -165,7 +163,7 @@ Example:
     </style>
 
     <!-- Use your own publish_key and subscribe_key please -->
-    <core-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}">
+    <core-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}">
       <core-pubnub-subscribe channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error">
         <core-pubnub-publish channel="{{channel}}" message="" id="pub" on-error="error"></core-pubnub-publish>
         <core-pubnub-history channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></core-pubnub-history>
@@ -266,12 +264,17 @@ Example:
           type: Boolean,
           value: false,
           reflectToAttribute:true
-          
+
         },
         avatar: {
           type: String,
-          value: 'https://s-media-cache-ak0.pinimg.com/236x/a7/e8/fb/a7e8fbe6ccae9e568d6324f3323ee840.jpg',
+          value: 'https://pbs.twimg.com/profile_images/457552884436336640/NIiM7w-w.jpeg',
           reflectToAttribute:true
+        },
+        auth_key: {
+          type: String,
+          value: "juanfran",
+          reflectToAttribute: true
         }
       },
 
@@ -279,6 +282,9 @@ Example:
 
       ready: function() {
         var back = this;
+        setInterval(function(){
+          back._changeTime();
+        },30000);
       },
       toogleBar: function(){
         this.menu_hidden = !this.menu_hidden;
@@ -314,7 +320,7 @@ Example:
         }
       },
       error: function(e){
-        console.log(e);
+        console.error(e);
 
       },
       historyRetrieved: function(e){
@@ -351,7 +357,7 @@ Example:
           var name = l.uuid;
           /// El avatar tiene que cogerse de una peticion, ver como coger
           // Se debe coger del servidor
-          l.avatar = back.avatar;
+          l.avatar = l.avatar;
           // Default avatar
           if(back.onlineUuids && back.onlineUuids.indexOf(l.uuid) > -1) {
             l.status = 'online';
@@ -367,55 +373,35 @@ Example:
           var date = new Date(this.messageList[i].timestamp);
           var current_date = new Date();
           var time;
-          /* Years */
-          if ((current_date.getFullYear() - date.getFullYear()) != 0) {
-            var dif = current_date.getFullYear() - date.getFullYear()
-            time = dif==1 ? dif + " year" : dif + " years";
-            /* Months */
-          } else if ((current_date.getMonth() - date.getMonth()) != 0) { 
-            var dif = current_date.getMonth() - date.getMonth();
-            time = dif==1 ? dif + " month" : dif + " months";
-            /* Days */
-          } else if((current_date.getDate() - date.getDate()) == 0 ){
-            if((current_date.getHours() - date.getHours()) == 0 ){
-              if( (current_date.getMinutes() - date.getMinutes()) == 0 ){
-                time = current_date.getSeconds() - date.getSeconds();
-                if (time === 0){
-                  time= "just now";
-                }else {
-                  time += time == 1? " second": " seconds";
-                }
 
-              }
-              else{
-                time = current_date.getMinutes() - date.getMinutes();
-                time += time == 1? " minute":  " minutes";
-              }
-            }
-            else{
-              if (current_date.getHours() - date.getHours() == 1) {
-                time = current_date.getHours() - date.getHours()+" hour";
-              }else {
-                time = current_date.getHours() - date.getHours()+" hours";
-              }
-            }
+          var ms = current_date - date;
+          var sec = Math.round(ms / 1000);
+          var min = Math.round(sec / 60);
+          var hr = Math.round(min / 60);
+          var day = Math.round(hr / 24);
+          var month = Math.round(day / 24);
+          var year = Math.round(month / 12);
+          if (ms < 0) {
+            time = 'just now';
+          } else if (sec < 10) {
+            time = 'just now';
+          } else if (sec < 45) {
+            time = sec + ' seconds ago';
+          } else if (sec < 90) {
+            time = 'a minute ago';
+          } else if (min < 60) {
+            time = min + ' minutes ago';
+          } else if (day < 1) {
+            time = "Today - " + date.getHours()+":";
+            time += date.getMinutes() < 10? "0" + date.getMinutes(): date.getMinutes();
+          } else {
+            var month = ["Jan","Feb","Mar","Apr", "May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            time = date.getDate()+" "+month[date.getMonth()] + ". "+date.getFullYear() + " - " + date.getHours()+":";
+            time += date.getMinutes() < 10? "0" + date.getMinutes(): date.getMinutes();
           }
-          else if( ((current_date.getDate() - date.getDate()) < 8) && ( (current_date.getDate() - date.getDate()) > 0)){
-            if( (current_date.getDate() - date.getDate()) == 1){
-              time = current_date.getDate() - date.getDate()+" day";
-            }
-            else{
-              time = current_date.getDate() - date.getDate()+" days";
-            }
+          if (typeof this.messageList[i] === "Object"){
+            this.set('messageList.'+i+'.time', time);
           }
-          else{
-            var month = ["jan","feb","mar","apr", "may","jun","jul","aug","sep","oct","nov","dec"];
-            time = date.getDate()+" "+month[date.getMonth()] + ". "+date.getFullYear();
-          }
-          if (time !== "just now"){
-            time += " ago";
-          }
-          this.set('messageList.'+i+'.time', time);
         }
       },
       _checkEnter: function(e){
