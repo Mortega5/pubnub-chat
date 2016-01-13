@@ -45,17 +45,28 @@ Example:
         border: 2px solid #797979;
         border-radius: 5px;
       }
+      .header {
+        background-color: var(--paper-green-400);
+        color:white;
+        padding: 10px;
+        border-bottom:2px solid var(--paper-green-800);
+      }
+      .header p{
+        text-transform: uppercase;
+      }
       .body {
         width: 100%;
         height: 450px;
+        position:relative;
       }
       .bar {
-        height: 100%;
+        bottom: 0;top:0;
         border-right: 2px solid;
         border-right-color: var(--paper-grey-600);
         opacity: 1;
         width: 150px;
-        transition: width 0.3s ease;
+        position: absolute;
+        z-index: 1000;
       }
       .bar[hide] {
         width: 0 !important;
@@ -83,7 +94,7 @@ Example:
         color: white;
       }
       .bar .userList {
-        margin:5px;
+        padding:5px;
         color: grey;
         background-color: var(--paper-grey-50);
         max-height: 100%;
@@ -92,16 +103,10 @@ Example:
       .bar .userList .user {
         margin:10px;
       }
-      .header {
-        background-color: var(--paper-red-400);
-        color:white;
-        padding: 10px;
-      }
       .content {
-        background-color: var(--paper-grey-100);
-      }
-      .content .msgs {
-        background-color: var(--paper-grey-100);
+        background-color: var(--paper-grey-300);
+        width: 100%;
+        height: 100%;
       }
 
       .msgs {
@@ -111,9 +116,18 @@ Example:
 
       .msgs .message {
         margin: auto;
-        padding: 12px 5px;
-        border-bottom: 1px solid;
-        border-bottom-color: var(--paper-grey-300);
+        margin: 5px 15px;
+        border-radius: 10px;
+        padding: 8px 40px 8px 15px;
+      }
+      .msgs .message.me .box{
+        margin-left:auto;
+      }
+      .msgs .message .box,
+      .msgs .message.me .box{
+        background-color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
       }
       .msgs .message .username {
         font-size: 16px;
@@ -160,11 +174,14 @@ Example:
       .status.online {
         display: block;
       }
+      hr {
+        margin:auto 20px;
+      }
     </style>
 
     <!-- Use your own publish_key and subscribe_key please -->
-    <core-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}">
-      <core-pubnub-subscribe channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error">
+    <core-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}" noleave>
+      <core-pubnub-subscribe channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error" timetoken="0">
         <core-pubnub-publish channel="{{channel}}" message="" id="pub" on-error="error"></core-pubnub-publish>
         <core-pubnub-history channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></core-pubnub-history>
       </core-pubnub-subscribe>
@@ -172,14 +189,14 @@ Example:
     <div class="vertical layout structure">
       <div class="header horizontal layout">
         <paper-icon-button on-tap="toogleBar" icon="menu"></paper-icon-button>
-        <p class="flex center">{{channel}}</p>
+        <p class="flex center">{{chat_title}}</p>
         <div class="center">
           <iron-icon icon="account-circle"></iron-icon>
           <span>{{occupancy}}</span>
         </div>
       </div>
 
-      <div class="horizontal layout body">
+      <div class$="body {{menu_hidden}}">
         <div hide$="{{menu_hidden}}" class="bar vertical layout">
           <paper-material elevation=1>
             <div class="userInfo">
@@ -194,22 +211,36 @@ Example:
             </template>
           </div>
         </div>
-
         <div class="content vertical layout flex">
           <div id="content" class="msgs flex">
             <template is="dom-repeat" items="{{messageList}}" observe="">
-              <div class="message horizontal layout">
-                <div class="avatar" style$="background-image: url({{item.avatar}})">
-                  <div class$="status {{item.status}}"></div>
-                </div>
-                <div class="flex vertical layout">
-                  <div class="horizontal layout">
-                    <span class="username flex">{{item.uuid}}</span>
-                    <span class="time">{{item.time}}</span>
+              <template is="dom-if" if="{{_compareTo(item.uuid, uuid, 0)}}">
+                <div class="message horizontal layout">
+                  <div class="avatar" style$="background-image: url({{item.avatar}})">
+                    <div class$="status {{item.status}}"></div>
                   </div>
-                  <span class="text">{{item.text}}</span>
+                  <div class="vertical layout box">
+                    <div class="horizontal layout">
+                      <span class="username flex">{{item.uuid}}</span>
+                      <span class="time">{{item.time}}</span>
+                    </div>
+                    <span class="text">{{item.text}}</span>
+                  </div>
                 </div>
-              </div>
+                <hr>
+              </template>
+              <template is="dom-if" if="{{_compareTo(item.uuid, uuid, 1)}}">
+                <div class="message horizontal layout me">
+                  <div class=" box vertical layout">
+                    <div class="horizontal layout">
+                      <span class="username flex">me</span>
+                      <span class="time">{{item.time}}</span>
+                    </div>
+                    <span class="text">{{item.text}}</span>
+                  </div>
+                </div>
+                <hr>
+              </template>
             </template>
 
           </div>
@@ -253,8 +284,7 @@ Example:
         },
         messageList: {
           type: Array,
-          value: function(){return []},
-          observer: '_scrollToBottom'
+          value: function(){return []}
         },
         channel: {
           type: String,
@@ -275,9 +305,12 @@ Example:
           type: String,
           value: "juanfran",
           reflectToAttribute: true
+        },
+        chat_title: {
+          type: String
         }
       },
-
+      observers: ['_takeName(onlineUuids.length)'],
       // Element Lifecycle
 
       ready: function() {
@@ -294,9 +327,9 @@ Example:
       },
       subscribeCallback: function(event){
         if(this.$.sub.messages.length > 0) {
-          this.displayChatList(this.pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)));
+          var isBottom = this.$.content.scrollHeight - this.$.content.scrollTop == this.$.content.clientHeight;
+          this.displayChatList(this.pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)), isBottom);
         }
-        var back = this;
       },
       presenceChanged: function(){
         var l = this.$.sub.presence.length;
@@ -326,14 +359,16 @@ Example:
       historyRetrieved: function(e){
         if(e.detail[0].length > 0) {
           this.pastMsgs = this.getListWithOnlineStatus(e.detail[0]);
-          this.displayChatList(this.pastMsgs);
+          this.displayChatList(this.pastMsgs, true);
         }
       },
-      displayChatList: function(list){
+      displayChatList: function(list, isBottom){
         this.messageList = list;
         this._changeTime();
-        this.async(this._scrollToBottom);
-
+        this.async(function(){
+          if (isBottom)
+            this._scrollToBottom();
+        }, 5);
       },
       publish: function() {
         if(!this.$.textInput.value) return;
@@ -367,7 +402,6 @@ Example:
         });
         return list;
       },
-      // TODO it does not work correctly
       _changeTime: function(){
         for (i=0;i<this.messageList.length;i++){
           var date = new Date(this.messageList[i].timestamp);
@@ -409,6 +443,18 @@ Example:
           this.publish();
         }
       },
+      _takeName: function(size){
+        if (size === 2) {
+          var idx = size - 1 - this.onlineUuids.indexOf(this.uuid);
+          this.chat_title = this.onlineUuids[idx];
+        } else {
+          this.chat_title = "Diff 2";
+        }
+      },
+      _compareTo: function(value1, value2, value) {
+        var result = value1==value2?1:0;
+        return result==value;
+      }
 
     });
   </script>
