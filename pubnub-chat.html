@@ -61,26 +61,28 @@ Example:
         height: 450px;
         position:relative;
         overflow-x: hidden;
+        background-color: var(--paper-grey-300);
       }
       .bar {
-        bottom: 0;top:0;
-        position: absolute;
         z-index: 1000;
-        width: 150px;
-        /*-webkit-transition: fadeOut 0.3s ease-in;*/
-        transition: left 0.3s linear;
+        position:relative;
+        transition: all 0.3s linear;
         left: -150px;
-        box-shadow: none;
         display:none;
+        width: 0;
+        background-color: transparent;
+        flex-grow: 0;
       }
 
       .bar[show] {
         left:0;
-        box-shadow: 5px 5px 10px #454242;
-        /*-webkit-transition: fadeIn 0.3s ease-out;*/
-        transition: left 0.3s linear;
+        width: 150px;
+        transition: all 0.3s linear;
+        border: 2px solid #797979;
       }
-
+      #content {
+        transition: all 0.3s linear;
+      }
       .bar .avatar {
         border-radius: 50%;
         width: 60px;
@@ -108,12 +110,15 @@ Example:
         max-height: 100%;
         overflow-y: auto;
       }
+      .bar .userList p{
+        overflow-y: hidden;
+        height: 18px;
+      }
       .bar .userList .user {
         margin:10px;
       }
       .content {
         background-color: var(--paper-grey-300);
-        width: 100%;
         height: 100%;
       }
 
@@ -191,6 +196,9 @@ Example:
         margin: 3px;
         --paper-fab-background: var(--paper-green-400);
       }
+      #content {
+        transition: all 0.3s linear;
+      }
     </style>
 
     <!-- Use your own publish_key and subscribe_key please -->
@@ -210,7 +218,7 @@ Example:
         </div>
       </div>
 
-      <div class$="body {{show_menu}}">
+      <div class$="body {{show_menu}} horizontal layout">
         <div show$="{{show_menu}}" class="bar vertical layout">
           <paper-material elevation=1>
             <div class="userInfo">
@@ -332,18 +340,22 @@ Example:
       // Element Lifecycle
 
       ready: function() {
-        var el = this.querySelector(".preload");
-        this.toggleClass('preload',false,el);
-        var back = this;
-        setInterval(function(){
-          back._changeTime();
-        },30000);
+
       },
       toggleBar: function(){
         this.show_menu = !this.show_menu;
+        var self = this;
+        var isBottom = this.$.content.scrollHeight - this.$.content.scrollTop == this.$.content.clientHeight;
+        this.interval = this.interval? undefined: setInterval(function(){self._scrollToBottom(isBottom)},5);
+        this.querySelector(".bar").addEventListener('transitionend', function(){
+          self.querySelector(".bar").removeEventListener('transitionend');
+          clearInterval(self.interval);
+        })
       },
-      _scrollToBottom: function(oldvalue, newvalue){
-        this.$.content.scrollTop = this.$.content.scrollHeight;
+      _scrollToBottom: function(isBottom){
+        if (isBottom){
+          this.$.content.scrollTop = this.$.content.scrollHeight;
+        }
       },
       subscribeCallback: function(event){
         if(this.$.sub.messages.length > 0) {
@@ -386,8 +398,7 @@ Example:
         this.messageList = list;
         this._changeTime();
         this.async(function(){
-          if (isBottom)
-            this._scrollToBottom();
+          this._scrollToBottom(isBottom);
         }, 5);
       },
       publish: function() {
