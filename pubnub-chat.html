@@ -60,20 +60,26 @@ Example:
         width: 100%;
         height: 450px;
         position:relative;
+        overflow-x: hidden;
       }
       .bar {
         bottom: 0;top:0;
-        border-right: 2px solid;
-        border-right-color: var(--paper-grey-600);
-        opacity: 1;
-        width: 150px;
         position: absolute;
         z-index: 1000;
+        width: 150px;
+        left:0;
+        box-shadow: 5px 5px 10px #454242;
+        -webkit-animation: fadeIn 1s ease-out;
+
       }
+
       .bar[hide] {
-        width: 0 !important;
-        opacity: 0;
+        -webkit-animation: fadeOut 1s ease-in;
+        left: -150px;
+        box-shadow: none;
+
       }
+
       .bar .avatar {
         border-radius: 50%;
         width: 60px;
@@ -84,7 +90,6 @@ Example:
       }
       .bar .userInfo{
         padding: 10px;
-        min-height: 100px;
         background-image:url('images/background.jpg');
         background-size: cover;
         background-repeat: no-repeat;
@@ -183,7 +188,17 @@ Example:
       }
       .inputs paper-fab{
         margin: 3px;
-         --paper-fab-background: var(--paper-green-400);
+        --paper-fab-background: var(--paper-green-400);
+      }
+      /* TEST */
+
+      @-webkit-keyframes fadeIn { /* Chrome, Safari */
+        0% {left:-150px;box-shadow:none;}
+        100% {left:0;box-shadow: 5px 5px 10px #454242;}
+      }
+      @-webkit-keyframes fadeOut { /* Chrome, Safari */
+        0% {left:0;box-shadow: 5px 5px 10px #454242;}
+        100% {left:-150px;}
       }
     </style>
 
@@ -256,7 +271,7 @@ Example:
           <div class="horizontal layout inputs">
             <paper-input class="flex" id="textInput" label="Type message..." autofocus no-label-float on-keyup="_checkEnter" value="{{input_value}}">
             </paper-input>
-            
+
             <paper-fab mini show="{{input_value}}" on-tap="publish" icon="send"></paper-fab>
           </div>
         </div>
@@ -322,7 +337,7 @@ Example:
           type: String
         }
       },
-      observers: ['_takeName(onlineUuids.length)'],
+      observers: ['getChatName(onlineUuids.length)'],
       // Element Lifecycle
 
       ready: function() {
@@ -455,7 +470,7 @@ Example:
           this.publish();
         }
       },
-      _takeName: function(size){
+      getChatName: function(size){
         if (size === 2) {
           var idx = size - 1 - this.onlineUuids.indexOf(this.uuid);
           this.chat_title = this.onlineUuids[idx];
