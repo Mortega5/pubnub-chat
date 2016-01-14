@@ -67,17 +67,18 @@ Example:
         position: absolute;
         z-index: 1000;
         width: 150px;
-        left:0;
-        box-shadow: 5px 5px 10px #454242;
-        -webkit-animation: fadeIn 1s ease-out;
-
-      }
-
-      .bar[hide] {
-        -webkit-animation: fadeOut 1s ease-in;
+        /*-webkit-transition: fadeOut 0.3s ease-in;*/
+        transition: left 0.3s linear;
         left: -150px;
         box-shadow: none;
+        display:none;
+      }
 
+      .bar[show] {
+        left:0;
+        box-shadow: 5px 5px 10px #454242;
+        /*-webkit-transition: fadeIn 0.3s ease-out;*/
+        transition: left 0.3s linear;
       }
 
       .bar .avatar {
@@ -190,16 +191,6 @@ Example:
         margin: 3px;
         --paper-fab-background: var(--paper-green-400);
       }
-      /* TEST */
-
-      @-webkit-keyframes fadeIn { /* Chrome, Safari */
-        0% {left:-150px;box-shadow:none;}
-        100% {left:0;box-shadow: 5px 5px 10px #454242;}
-      }
-      @-webkit-keyframes fadeOut { /* Chrome, Safari */
-        0% {left:0;box-shadow: 5px 5px 10px #454242;}
-        100% {left:-150px;}
-      }
     </style>
 
     <!-- Use your own publish_key and subscribe_key please -->
@@ -211,7 +202,7 @@ Example:
     </core-pubnub>
     <div class="vertical layout structure">
       <div class="header horizontal layout">
-        <paper-icon-button on-tap="toogleBar" icon="menu"></paper-icon-button>
+        <paper-icon-button on-tap="toggleBar" icon="menu"></paper-icon-button>
         <p class="flex center">{{chat_title}}</p>
         <div class="center">
           <iron-icon icon="account-circle"></iron-icon>
@@ -219,8 +210,8 @@ Example:
         </div>
       </div>
 
-      <div class$="body {{menu_hidden}}">
-        <div hide$="{{menu_hidden}}" class="bar vertical layout">
+      <div class$="body {{show_menu}}">
+        <div show$="{{show_menu}}" class="bar vertical layout">
           <paper-material elevation=1>
             <div class="userInfo">
               <img src="{{avatar}}" class="avatar">
@@ -317,7 +308,7 @@ Example:
           type: String,
           value: "polymer-chat"
         },
-        menu_hidden: {
+        show_menu: {
           type: Boolean,
           value: false,
           reflectToAttribute:true
@@ -341,13 +332,15 @@ Example:
       // Element Lifecycle
 
       ready: function() {
+        var el = this.querySelector(".preload");
+        this.toggleClass('preload',false,el);
         var back = this;
         setInterval(function(){
           back._changeTime();
         },30000);
       },
-      toogleBar: function(){
-        this.menu_hidden = !this.menu_hidden;
+      toggleBar: function(){
+        this.show_menu = !this.show_menu;
       },
       _scrollToBottom: function(oldvalue, newvalue){
         this.$.content.scrollTop = this.$.content.scrollHeight;
