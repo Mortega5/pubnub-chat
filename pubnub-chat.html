@@ -43,12 +43,7 @@ Example:
   <template>
     <style is="custom-style">
       :host {
-        position: absolute;
-        bottom:0;
-        right: 0;
         margin: 5px;
-        float:right;
-
       }
       .structure {
         width: 300px;
@@ -224,12 +219,12 @@ Example:
     </style>
 
     <!-- Use your own publish_key and subscribe_key please -->
-    <core-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}" noleave>
-      <core-pubnub-subscribe channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error" timetoken="0">
-        <core-pubnub-publish channel="{{channel}}" message="" id="pub" on-error="error"></core-pubnub-publish>
-        <core-pubnub-history channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></core-pubnub-history>
-      </core-pubnub-subscribe>
-    </core-pubnub>
+    <iron-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}" noleave>
+      <iron-pubnub-subscribe channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error" timetoken="0">
+        <iron-pubnub-publish channel="{{channel}}" message="" id="pub" on-error="error"></iron-pubnub-publish>
+        <iron-pubnub-history channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></iron-pubnub-history>
+      </iron-pubnub-subscribe>
+    </iron-pubnub>
     <div class="vertical layout structure">
       <div class="header horizontal layout">
         <paper-icon-button rotate$="{{show_menu}}"on-tap="toggleBar" icon="{{menu_icon}}"></paper-icon-button>
@@ -342,7 +337,8 @@ Example:
         },
         channel: {
           type: String,
-          value: "polymer-chat"
+          value: "test-chat",
+          reflectToAttribute: true
         },
         show_menu: {
           type: Boolean,
@@ -387,12 +383,14 @@ Example:
         this.$.content.scrollTop = this.$.content.scrollHeight;
       },
       subscribeCallback: function(event){
+        console.log("Reacciono a subscribe: ", event)
         if(this.$.sub.messages.length > 0) {
           var isBottom = this.$.content.scrollHeight - this.$.content.scrollTop == this.$.content.clientHeight;
           this.displayChatList(this.pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)), isBottom);
         }
       },
       presenceChanged: function(){
+        // Comprobar que los mensajes vienen del chat registrado
         var l = this.$.sub.presence.length;
         var d = this.$.sub.presence[l - 1];
 
@@ -509,7 +507,7 @@ Example:
           var idx = size - 1 - this.onlineUuids.indexOf(this.uuid);
           this.chat_title = this.onlineUuids[idx];
         } else {
-          this.chat_title = "Chat 1";
+          this.chat_title = "Chat " + this.uuid;
         }
       },
       _compareTo: function(value1, value2, value) {
