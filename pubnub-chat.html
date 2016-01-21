@@ -43,7 +43,6 @@ Example:
   <template>
     <style is="custom-style">
       :host {
-        margin: 5px;
       }
       .structure {
         width: 300px;
@@ -227,7 +226,7 @@ Example:
     </iron-pubnub>
     <div class="vertical layout structure">
       <div class="header horizontal layout">
-        <paper-icon-button rotate$="{{show_menu}}"on-tap="toggleBar" icon="{{menu_icon}}"></paper-icon-button>
+        <paper-icon-button  hidden="{{nobar}}"rotate$="{{show_menu}}"on-tap="toggleBar" icon="{{menu_icon}}"></paper-icon-button>
         <p class="flex center">{{chat_title}}</p>
         <div class="center occupancyInfo" title="">
           <iron-icon icon="account-circle"></iron-icon>
@@ -236,7 +235,7 @@ Example:
       </div>
 
       <div class$="body {{show_menu}}">
-        <div show$="{{show_menu}}" class="bar vertical layout">
+        <div show$="{{show_menu}}" class="bar vertical layout" hidden="{{nobar}}">
           <paper-material elevation=1>
             <div class="userInfo">
               <img src="{{avatar}}" class="avatar">
@@ -362,6 +361,10 @@ Example:
         menu_icon: {
           type: String,
           value: "menu"
+        },
+        nobar: {
+          type: Boolean,
+          value: false
         }
       },
       observers: ['getChatName(onlineUuids.length)'],
@@ -383,7 +386,6 @@ Example:
         this.$.content.scrollTop = this.$.content.scrollHeight;
       },
       subscribeCallback: function(event){
-        console.log("Reacciono a subscribe: ", event)
         if(this.$.sub.messages.length > 0) {
           var isBottom = this.$.content.scrollHeight - this.$.content.scrollTop == this.$.content.clientHeight;
           this.displayChatList(this.pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)), isBottom);

@@ -14,40 +14,88 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
     <title>pubnub-chat Demo</title>
     <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import"  href="../../paper-tabs/paper-tabs.html">
+    <link rel="import"  href="../../paper-tabs/paper-tab.html">
+    <link rel="import" href="../../paper-styles/paper-styles.html">
+
     <link rel="import" href="../pubnub-chat.html">
-    <!--    <script src="http://cdn.pubnub.com/pubnub-dev.js"></script>
-<script type="text/javascript">
-
-var pubnub = PUBNUB.init({
-publish_key: 'pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4',
-subscribe_key: 'sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe',
-secret_key: 'sec-c-ZTg3NGRiNDktN2Y0Ni00Mzg2LThlNDAtMmM0MTAyYjM0YmM2',
-auth_key:"juanfran"
-});
-
-</script>-->
-    <style>
+    <style is="custom-style">
       pubnub-chat {
         position:relative;
         bottom:0;right: 0;
-        float: left;
       }
       .container {
         position: absolute;
-        bottom:0;
-        right: 0;
+        bottom:5px;
+        right: 5px;
+        width: 300px;
+        height: 450px;
+      }
+      paper-tab {
+        background-color: #eee;
+        overflow-y: hidden;
+      }
+      paper-tab.iron-selected {
+        background-color:var(--paper-blue-600);
+        font-weight: bold;
+        border:2px solid var(--paper-blue-800) !important;
+      }
+      .new {
+        border: 2px solid green;
+        width: 100%;
+        height: 100%;
+        margin-bottom: 5px;
+      }
+      pubnub-chat {
+        transition: all 1s linear;
+        opacity: 1;
+      }
+      pubnub-chat[hidden] {
+        transition: all 1s linear;
+        opacity: 0;
       }
     </style>
   </head>
   <body unresolved>
-    <div class="container">
-    <pubnub-chat publish_key="pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4" subscribe_key="sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe" uuid="juafran" auth_key="juanfran" channel="test-chat-1">
-    </pubnub-chat>
+    <template is="dom-bind" id="bind">
+      <div class="container vertical layout">
 
-    <pubnub-chat publish_key="pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4" subscribe_key="sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe" uuid="miguel" auth_key="juanfran" channel="test-chat-2">
-    </pubnub-chat>
-    <pubnub-chat publish_key="pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4" subscribe_key="sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe" uuid="sandra" auth_key="juanfran" channel="test-chat-3">
-    </pubnub-chat>
-    </div>
+        <paper-tabs selected="{{selected}}" no-bar>
+          <template is="dom-repeat" items="{{chats}}">
+            <paper-tab>{{item}}</paper-tab>
+          </template>
+          <paper-tab>+</paper-tab>
+        </paper-tabs>
+
+
+
+        <template is="dom-repeat" items="{{chats}}">
+          <pubnub-chat publish_key="pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4" subscribe_key="sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe" uuid="{{item}}" auth_key="juanfran" channel="test-chat-{{item}}" hidden="{{is_hidden(item, selected)}}" nobar>
+          </pubnub-chat>
+        </template>
+
+        <div class="new flex" hidden="{{select(selected, chats)}}">
+          <template is="dom-repeat" items="{{list}}">
+            <p>{{item}}</p>
+          </template>
+        </div>
+
+
+      </div>
+
+    </template>
+    <script>
+      var bind = document.querySelector('#bind');
+      bind.selected = 0;
+      bind.list = ["Geno", "David", "Agustin", "Miguel"];
+      bind.chats = ["Juanfran", "Luis", "Ana", "Sandra", "hola", "adios"];
+      bind.select = function(selected, chats){
+        return selected != chats.length;
+      };
+      bind.is_hidden = function(item, selected){
+        return item != bind.chats[selected];
+      };
+
+    </script>
   </body>
 </html>
