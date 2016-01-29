@@ -43,7 +43,6 @@ Example:
   <template>
     <style is="custom-style">
       :host {
-        margin: 5px;
       }
       .structure {
         width: 300px;
@@ -80,7 +79,7 @@ Example:
         z-index: 1000;
         width: 100%;
         /*-webkit-transition: fadeOut 0.3s ease-in;*/
-        transition: left 0.3s linear;
+        transition: left 0.3s ease-out;
         left: -100%;
         box-shadow: none;
         display:none;
@@ -88,11 +87,14 @@ Example:
 
       .bar[show] {
         left:0;
-        box-shadow: 5px 5px 10px #454242;
         /*-webkit-transition: fadeIn 0.3s ease-out;*/
-        transition: left 0.3s linear;
+        transition: left 0.3s ease-out, background-color 0.7s ease-out;
+        background-color: rgba(0,0,0,0.4);
       }
+      .bar[show] div {
+        box-shadow: 5px 5px 10px #454242;
 
+      }
       .bar .avatar {
         border-radius: 50%;
         width: 60px;
@@ -101,11 +103,12 @@ Example:
         border: 2px solid;
       }
       .bar .userInfo{
-        padding: 10px;
         background-image:url('images/background.jpg');
         background-size: cover;
         background-repeat: no-repeat;
         text-align: center;
+        width:80%;
+        padding:10px 0px;
       }
       .bar .userInfo p {
         font-size: 18px;
@@ -113,14 +116,39 @@ Example:
         color: #fefefe;
       }
       .bar .menuContent {
-        padding:5px 0px;
-        color: grey;
+        padding:10px 0px;
+        position:relative;
+        color: #333;
         background-color: var(--paper-grey-50);
         max-height: 100%;
         overflow-y: auto;
+        width:80%;
       }
-      .bar .menuContent p{
+      .bar .menuContent p,
+      .bar .menuContent span
+      {
         margin: 10px;
+        margin-left: 8px;
+      }
+      .bar .menuContent iron-icon[icon="assignment-ind"] {
+        padding-left: 5px;
+      }
+      .bar .menuContent .user {
+        padding: 8px 8px 8px 30px;
+        margin: 3px 0px;
+      }
+      .bar .menuContent .user:hover {
+        background-color: #eee;
+        cursor: pointer;
+      }
+      .bar .menuContent .title {
+        font-size: 16px;
+      }
+      .bar .menuContent .add {
+        position:absolute;
+        bottom:10px;
+        right: 10px;
+        --paper-fab-background: var(--paper-red-700);
       }
       .content {
         background-color: var(--paper-grey-300);
@@ -137,9 +165,6 @@ Example:
         margin: 5px 3%;
         border-radius: 10px;
         padding: 8px 40px 8px 15px;
-      }
-      .msgs .message:first-child {
-        content: ""
       }
       .msgs .message.me .box {
         margin-left: auto;
@@ -205,27 +230,48 @@ Example:
         border-top: 2px solid #797979;
         background-color: #fefefe;
       }
-      .inputs paper-fab{
-        margin: auto 5px;
+      .add{
+        margin: auto 5px 5px auto;
         --paper-fab-background: var(--paper-green-400);
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
         --paper-fab-iron-icon: {
-          width: 20px;
-          height: 20px;
+          width: 25px;
+          height: 25px;
         }
       }
-
+      .initial paper-input {
+        padding: 2px 5px;
+      }
+      .initial .chatOpened {
+        padding: 12px 5px;
+        border-bottom: 1px solid black;
+        font-size: 17px;
+      }
+      .initial .chatOpened:hover {
+        background-color:#aaa;
+      }
+      .initial .chatOpened iron-icon {
+        --iron-icon-height: 40px;
+        --iron-icon-width: 40px;
+        border-radius: 50%;
+        margin:auto 3px;
+      }
+      .initial .chatOpened iron-icon /deep/ img {
+        border-radius: 50%;
+      }
     </style>
 
     <!-- Use your own publish_key and subscribe_key please -->
-    <iron-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}" noleave>
-      <iron-pubnub-subscribe channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error" timetoken="0">
+    <iron-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}" noleave auto>
+      <iron-pubnub-subscribe auto channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error" timetoken="0">
         <iron-pubnub-publish channel="{{channel}}" message="" id="pub" on-error="error"></iron-pubnub-publish>
-        <iron-pubnub-history channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></iron-pubnub-history>
+        <iron-pubnub-history auto channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></iron-pubnub-history>
       </iron-pubnub-subscribe>
+      <iron-pubnub-where-now auto id="where" on-presence="whereIam"></iron-pubnub-where-now>
     </iron-pubnub>
     <div class="vertical layout structure">
+      <!-- header -->
       <div class="header horizontal layout">
         <paper-icon-button rotate$="{{show_menu}}"on-tap="toggleBar" icon="{{menu_icon}}"></paper-icon-button>
         <p class="flex center">{{chat_title}}</p>
@@ -234,28 +280,10 @@ Example:
           <span>{{occupancy}}</span>
         </div>
       </div>
+      <div class="body">
 
-      <div class$="body {{show_menu}}">
-        <div show$="{{show_menu}}" class="bar vertical layout">
-          <paper-material elevation=1>
-            <div class="userInfo">
-              <img src="{{avatar}}" class="avatar">
-              <p class="center">{{uuid}}</p>
-            </div>
-          </paper-material>
-          <div class="menuContent flex">
-            <p class="title">CHATS SUSCRITOS</p>
-            <hr>
-<!--            <template is="dom-repeat" items="{{onlineUuids}}">
-              <p class="user">{{item}}</p>
-            </template>-->
-            <p>Club de ajedez</p>
-            <p>Club de campo</p>
-            <p>CONWET</p>
-            <p>FI UPM</p>
-          </div>
-        </div>
-        <div class="content vertical layout flex">
+        <!-- Message -->
+        <div class="content vertical layout flex" hidden>
           <div id="content" class="msgs flex">
             <template is="dom-repeat" items="{{messageList}}" observe="">
               <!-- Messages recived -->
@@ -297,7 +325,46 @@ Example:
             <paper-fab mini show="{{input_value}}" on-tap="publish" icon="send"></paper-fab>
           </div>
         </div>
+
+        <!-- Left bar -->
+        <div show$="{{show_menu}}" class="bar vertical layout">
+          <div class="userInfo">
+            <img src="{{avatar}}" class="avatar">
+            <p class="center">{{uuid}}</p>
+          </div>
+          <div class="menuContent flex">
+            <iron-icon icon="assignment-ind"></iron-icon><span class="title">Chats Subscritos</span>
+            <template is="dom-repeat" items="{{myChats}}">
+              <p class="user">{{item}}</p>
+            </template>
+            <hr>
+            <paper-fab icon="add" mini class="add"></paper-fab>
+          </div>
+        </div>
+
+        <!-- Inicial chat -->
+        <div class="content vertical layout initial" style="position:absolute">
+          <!-- Search bar -->
+          <paper-input  class="searchBar" id="searchBar" label="Search chat..." no-label-float on-keyup="_checkEnter" value="{{search_value}}">
+            <iron-icon icon="search" prefix></iron-icon>
+          </paper-input>
+          <!-- List of chat opened -->
+          <div class="flex">
+            <template is="dom-repeat" items="{{myChats}}">
+              <div class="chatOpened">
+                <iron-icon src="http://www.24horas.cl/incoming/article1354812.ece/ALTERNATES/w620h350/La%20prueba%20cient%C3%ADfica%20de%20la%20misteriosa%20sonrisa%20del%20Gato%20de%20Cheshire"></iron-icon>
+                {{item}}
+              </div>
+            </template>
+            <template is="dom-if" if="{{_compareTo(myChats,0, 1)}}">
+              <span>Testing void chats</span>
+            </template>
+          </div>
+          <!-- Add button -->
+          <paper-fab icon="add" mini class="add"></paper-fab>
+        </div>
       </div>
+
     </div>
 
   </template>
@@ -317,7 +384,8 @@ Example:
         },
         uuid: {
           type: String,
-          reflectToAttribute: true
+          reflectToAttribute: true,
+          value: ""
         },
         pastMsgs: {
           type: Array,
@@ -337,14 +405,12 @@ Example:
         },
         channel: {
           type: String,
-          value: "test-chat",
           reflectToAttribute: true
         },
         show_menu: {
           type: Boolean,
           value: false,
           reflectToAttribute:true
-
         },
         avatar: {
           type: String,
@@ -362,6 +428,10 @@ Example:
         menu_icon: {
           type: String,
           value: "menu"
+        },
+        chats_subscribed: {
+          type: Array,
+          value: function(){return []}
         }
       },
       observers: ['getChatName(onlineUuids.length)'],
@@ -507,14 +577,20 @@ Example:
           var idx = size - 1 - this.onlineUuids.indexOf(this.uuid);
           this.chat_title = this.onlineUuids[idx];
         } else {
-          this.chat_title = "Chat " + this.uuid;
+          this.chat_title = "Pubnub Chat";
         }
+
       },
       _compareTo: function(value1, value2, value) {
         var result = value1==value2?1:0;
         return result==value;
-      }
+      },
+      whereIam: function(e){
+        this.myChats = e.detail.channels;
+      },
+
 
     });
   </script>
 </dom-module>
+
