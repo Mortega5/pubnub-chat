@@ -288,7 +288,7 @@ Example:
       <div class="body">
 
         <!-- Message -->
-        <div class="content vertical layout flex" hidden>
+        <div class="content vertical layout flex" hidden="{{_compareTo(chat_selected,-1 ,1)}}">
           <div id="content" class="msgs flex">
             <template is="dom-repeat" items="{{messageList}}" observe="">
               <!-- Messages recived -->
@@ -339,7 +339,7 @@ Example:
           </div>
           <div class="menuContent flex">
             <iron-icon icon="assignment-ind"></iron-icon><span class="title">Chats Subscritos</span>
-            <template is="dom-repeat" items="{{myChats}}">
+            <template is="dom-repeat" items="{{mychats}}">
               <p class="user">{{item}}</p>
             </template>
             <hr>
@@ -348,24 +348,22 @@ Example:
         </div>
 
         <!-- Inicial chat -->
-        <div class="content vertical layout initial" style="position:absolute">
+        <div class="content vertical layout initial" hidden="{{_compareTo(chat_selected,-1 ,0)}}" style="position:absolute">
           <!-- Search bar -->
           <paper-input  class="searchBar" id="searchBar" label="Search chat..." no-label-float on-keyup="_checkEnter" value="{{search_value}}">
             <iron-icon icon="search" prefix></iron-icon>
           </paper-input>
           <!-- List of chat opened -->
           <div class="flex">
-            <template is="dom-repeat" items="{{myChats}}">
-              <div class="chatOpened">
-                <iron-icon src="http://www.24horas.cl/incoming/article1354812.ece/ALTERNATES/w620h350/La%20prueba%20cient%C3%ADfica%20de%20la%20misteriosa%20sonrisa%20del%20Gato%20de%20Cheshire"></iron-icon>
-                {{item}}
+            <template is="dom-repeat" items="{{chats}}" filter="{{_searchContent(search_value)}}">
+              <div class="chatOpened" on-tap="selectChat" item$="{{item}}">
+                <iron-icon src="{{item.icon}}"></iron-icon>
+                {{item.name}}
               </div>
             </template>
-            <template is="dom-if" if="{{_compareTo(myChats,0, 1)}}">
+            <template is="dom-if" if="{{_compareTo(chats,0, 1)}}">
               <span>Testing void chats</span>
             </template>
-            <!-- Add button -->
-            <paper-fab icon="add" mini class="add"></paper-fab>
           </div>
         </div>
       </div>
@@ -434,9 +432,13 @@ Example:
           type: String,
           value: "menu"
         },
-        chats_subscribed: {
+        chats: {
           type: Array,
           value: function(){return []}
+        },
+        chat_selected: {
+          type: Number,
+          value: -1
         }
       },
       observers: ['getChatName(onlineUuids.length)'],
@@ -593,8 +595,22 @@ Example:
       whereIam: function(e){
         this.myChats = e.detail.channels;
       },
-
-
+      _searchContent: function(string) {
+        if (!string) {
+          // set filter to null to disable filtering
+          return null;
+        } else {
+          // return a filter function for the current search string
+          string = string.toLowerCase();
+          return function(item) {
+            return item.name.indexOf(string) > -1;
+          };
+        }
+      },
+      selectChat: function(event) {
+        var item = JSON.parse(event.currentTarget.getAttribute('item'));
+        console.info("Seleccionado: ", item.name);
+      }
     });
   </script>
 </dom-module>
