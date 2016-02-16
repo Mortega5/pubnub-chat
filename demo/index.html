@@ -43,19 +43,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <div class="container">
         <pubnub-chat publish_key="pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4" subscribe_key="sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe" uuid="juanfran" auth_key="juanfran" chats="{{chats}}">
         </pubnub-chat>
-
-        <!--    <pubnub-chat publish_key="pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4" subscribe_key="sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe" uuid="miguel" auth_key="juanfran" channel="test-chat-2">
-</pubnub-chat>
-<pubnub-chat publish_key="pub-c-28f274d4-b637-4899-86a3-62d35adb9fc4" subscribe_key="sub-c-60639ae8-a897-11e5-9a41-02ee2ddab7fe" uuid="sandra" auth_key="juanfran" channel="test-chat-3">
-</pubnub-chat>-->
       </div>
     </template>
 
     <script>
       var icon = "http://www.24horas.cl/incoming/article1354812.ece/ALTERNATES/w620h350/La%20prueba%20cient%C3%ADfica%20de%20la%20misteriosa%20sonrisa%20del%20Gato%20de%20Cheshire";
       var bind = document.querySelector('#bind');
-      bind.chats = [{name: 'test1',icon: icon, channel:""},{name: 'test2',icon: icon},{name: 'test3',icon: icon}];
-
+      bind.chats = [{name: 'test1',icon: icon, channel: "polymer-chat"},{name: 'test2',icon: icon, channel: "polymer-chat-6"},{name: 'test3',icon: icon, channel: "polymer-chat-7"}];
+      bind.chats = [];
     </script>
   </body>
 </html>

@@ -20,6 +20,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-material/paper-material.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-fab/paper-fab.html">
+<link rel="import" href="../paper-button/paper-button.html">
 
 
 <!--
@@ -133,11 +134,11 @@ Example:
       .bar .menuContent iron-icon[icon="assignment-ind"] {
         padding-left: 5px;
       }
-      .bar .menuContent .user {
+      .bar .menuContent p {
         padding: 8px 8px 8px 30px;
         margin: 3px 0px;
       }
-      .bar .menuContent .user:hover {
+      .bar .menuContent p:hover {
         background-color: #eee;
         cursor: pointer;
       }
@@ -243,27 +244,46 @@ Example:
       .initial paper-input {
         padding: 2px 5px;
       }
-      .initial .chatOpened {
+      .format {
         padding: 12px 5px;
-        border-bottom: 1px solid black;
         font-size: 17px;
+      }
+      .format.textCenter {
+        text-align: center;
+      }
+      .format paper-button:hover {
+        background-color: var(--paper-green-400);
+      }
+      .initial .chatOpened {
+        border-bottom: 1px solid #999;
       }
       .initial .chatOpened:hover {
         background-color:#aaa;
       }
       .initial .chatOpened iron-icon {
-        --iron-icon-height: 40px;
-        --iron-icon-width: 40px;
+        --iron-icon-height: 30px;
+        --iron-icon-width: 30px;
         border-radius: 50%;
         margin:auto 3px;
       }
       .initial .chatOpened iron-icon /deep/ img {
         border-radius: 50%;
       }
-      .content paper-fab {
+      .content paper-fab[icon="add"] {
         position:absolute;
         bottom: 10px;
         right: 10px;
+      }
+      paper-fab[icon="send"] {
+        width:28px;
+        height:28px;
+        --paper-fab-iron-icon: {
+          width: 18px;
+          height: 18px;
+        }
+      }
+      #send {
+        margin:auto 5px;;
       }
     </style>
 
@@ -271,7 +291,7 @@ Example:
     <iron-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}" noleave auto>
       <iron-pubnub-subscribe auto channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error" timetoken="0">
         <iron-pubnub-publish channel="{{channel}}" message="" id="pub" on-error="error"></iron-pubnub-publish>
-        <iron-pubnub-history auto channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></iron-pubnub-history>
+        <iron-pubnub-history id="his" channel="{{channel}}" count="30" on-success="historyRetrieved" on-error="error"></iron-pubnub-history>
       </iron-pubnub-subscribe>
       <iron-pubnub-where-now auto id="where" on-presence="whereIam"></iron-pubnub-where-now>
     </iron-pubnub>
@@ -288,7 +308,7 @@ Example:
       <div class="body">
 
         <!-- Message -->
-        <div class="content vertical layout flex" hidden="{{_compareTo(chat_selected,-1 ,1)}}">
+        <div class="content vertical layout flex" hidden="{{_compareTo(chat_selected, -1, 1)}}">
           <div id="content" class="msgs flex">
             <template is="dom-repeat" items="{{messageList}}" observe="">
               <!-- Messages recived -->
@@ -326,8 +346,7 @@ Example:
           <div class="horizontal layout inputs">
             <paper-input class="flex" id="textInput" label="Type message..." autofocus no-label-float on-keyup="_checkEnter" value="{{input_value}}">
             </paper-input>
-
-            <paper-fab mini show="{{input_value}}" on-tap="publish" icon="send"></paper-fab>
+            <div id="send"><paper-fab mini show="{{input_value}}" on-tap="publish" icon="send"></paper-fab></div>
           </div>
         </div>
 
@@ -338,17 +357,18 @@ Example:
             <p class="center">{{uuid}}</p>
           </div>
           <div class="menuContent flex">
-            <iron-icon icon="assignment-ind"></iron-icon><span class="title">Chats Subscritos</span>
-            <template is="dom-repeat" items="{{mychats}}">
-              <p class="user">{{item}}</p>
+            <iron-icon icon="assignment-ind"></iron-icon><span class="title">Chats Recientes</span>
+            <template is="dom-repeat" items="{{myChats}}">
+              <p class="user " on-click="openChat">{{item}}</p>
             </template>
             <hr>
-            <paper-fab icon="add" mini class="add"></paper-fab>
+            <p>Crear nuevo Chat</p>
+            <paper-fab icon="add" mini class="add" on-tap="addNewChat"></paper-fab>
           </div>
         </div>
 
         <!-- Inicial chat -->
-        <div class="content vertical layout initial" hidden="{{_compareTo(chat_selected,-1 ,0)}}" style="position:absolute">
+        <div class="content vertical layout initial" hidden="{{_compareTo(chat_selected, -1, 0)}}" style="position:absolute">
           <!-- Search bar -->
           <paper-input  class="searchBar" id="searchBar" label="Search chat..." no-label-float on-keyup="_checkEnter" value="{{search_value}}">
             <iron-icon icon="search" prefix></iron-icon>
@@ -356,13 +376,16 @@ Example:
           <!-- List of chat opened -->
           <div class="flex">
             <template is="dom-repeat" items="{{chats}}" filter="{{_searchContent(search_value)}}">
-              <div class="chatOpened" on-tap="selectChat" item$="{{item}}">
+              <div class="chatOpened format" on-tap="selectChat" item$="{{index}}">
                 <iron-icon src="{{item.icon}}"></iron-icon>
                 {{item.name}}
               </div>
             </template>
             <template is="dom-if" if="{{_compareTo(chats,0, 1)}}">
-              <span>Testing void chats</span>
+              <div class="format textCenter">
+                <p>There are not chats yet. But you don't worry. You can create one.</p>
+                <paper-button on-tap="createChat">Create Chat</paper-button>
+              </div>
             </template>
           </div>
         </div>
@@ -408,7 +431,8 @@ Example:
         },
         channel: {
           type: String,
-          reflectToAttribute: true
+          reflectToAttribute: true,
+          observer: 'getChatName'
         },
         show_menu: {
           type: Boolean,
@@ -455,12 +479,12 @@ Example:
       toggleBar: function(){
         this.show_menu = !this.show_menu;
         this.menu_icon = this.menu_icon == "menu" ? "arrow-forward": "menu";
+        this.$.where.whereNow();
       },
       _scrollToBottom: function(oldvalue, newvalue){
         this.$.content.scrollTop = this.$.content.scrollHeight;
       },
       subscribeCallback: function(event){
-        console.log("Reacciono a subscribe: ", event)
         if(this.$.sub.messages.length > 0) {
           var isBottom = this.$.content.scrollHeight - this.$.content.scrollTop == this.$.content.clientHeight;
           this.displayChatList(this.pastMsgs.concat(this.getListWithOnlineStatus(this.$.sub.messages)), isBottom);
@@ -496,6 +520,9 @@ Example:
         if(e.detail[0].length > 0) {
           this.pastMsgs = this.getListWithOnlineStatus(e.detail[0]);
           this.displayChatList(this.pastMsgs, true);
+        } else {
+          this.set('pastMsgs',[]);
+          this.set('messageList',[]);
         }
       },
       displayChatList: function(list, isBottom){
@@ -579,12 +606,14 @@ Example:
           this.publish();
         }
       },
-      getChatName: function(size){
-        if (size === 2) {
+      getChatName: function(){
+        /*        if (size === 2) {
           var idx = size - 1 - this.onlineUuids.indexOf(this.uuid);
           this.chat_title = this.onlineUuids[idx];
+        } else */if (this.chat_selected){
+          this.chat_title = this.channel;
         } else {
-          this.chat_title = "Pubnub Chat";
+          this.chat_title = "Polymer Chat";
         }
 
       },
@@ -608,8 +637,26 @@ Example:
         }
       },
       selectChat: function(event) {
-        var item = JSON.parse(event.currentTarget.getAttribute('item'));
+        var index = event.currentTarget.getAttribute('item');
+        var item = this.chats[index];
         console.info("Seleccionado: ", item.name);
+        this.channel = item.channel;
+        this.chat_selected = index;
+        this.$.where.whereNow();
+      },
+      openChat: function(event){
+        var name = event.currentTarget.textContent;
+        this.channel = name;
+        this.chat_selected = name;
+        this.toggleBar();
+        this.$.where.whereNow();
+      },
+      addNewChat: function(){
+        this.chat_selected = -1;
+        this.toggleBar();
+      },
+      createChat: function(){
+        console.log("TODO crear chat");
       }
     });
   </script>
