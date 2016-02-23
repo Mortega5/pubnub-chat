@@ -21,6 +21,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-fab/paper-fab.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../firebase-element/firebase-collection.html">
 
 
 <!--
@@ -79,6 +80,7 @@ Example:
         position: absolute;
         z-index: 1000;
         width: 100%;
+        height: 100%;
         /*-webkit-transition: fadeOut 0.3s ease-in;*/
         transition: left 0.3s ease-out;
         left: -100%;
@@ -251,8 +253,11 @@ Example:
       .format.textCenter {
         text-align: center;
       }
-      .format paper-button:hover {
+      .initial paper-button {
         background-color: var(--paper-green-400);
+      }
+      .format paper-button:hover {
+        background-color: var(--paper-green-700);
       }
       .initial .chatOpened {
         border-bottom: 1px solid #999;
@@ -287,6 +292,12 @@ Example:
       }
     </style>
 
+    <firebase-collection
+                         limit-to-first="3"
+                         location="https://luminous-heat-7223.firebaseio.com/Chats"
+                         data="{{dinosaurs}}"></firebase-collection>
+
+
     <!-- Use your own publish_key and subscribe_key please -->
     <iron-pubnub publish_key="{{publish_key}}" subscribe_key="{{subscribe_key}}" uuid="{{uuid}}" auth_key="{{auth_key}}" noleave auto>
       <iron-pubnub-subscribe auto channel="{{channel}}" id="sub" on-callback="subscribeCallback" on-presence="presenceChanged" on-error="error" timetoken="0">
@@ -305,7 +316,7 @@ Example:
           <span>{{occupancy}}</span>
         </div>
       </div>
-      <div class="body">
+      <div class="body" id="body" on-scroll="_moveBar">
 
         <!-- Message -->
         <div class="content vertical layout flex" hidden="{{_compareTo(chat_selected, -1, 1)}}">
@@ -351,7 +362,7 @@ Example:
         </div>
 
         <!-- Left bar -->
-        <div show$="{{show_menu}}" class="bar vertical layout">
+        <div show$="{{show_menu}}" class="bar vertical layout" id="bar"s>
           <div class="userInfo">
             <img src="{{avatar}}" class="avatar">
             <p class="center">{{uuid}}</p>
@@ -657,6 +668,10 @@ Example:
       },
       createChat: function(){
         console.log("TODO crear chat");
+      },
+      _moveBar: function(e){
+        this.$.bar.style.top = e.target.scrollTop + "px";
+        
       }
     });
   </script>
