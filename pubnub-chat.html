@@ -156,7 +156,7 @@ Example:
       .content {
         background-color: var(--paper-grey-300);
         width: 100%;
-        height: 100%;
+        min-height: 100%;
       }
 
       .msgs {
@@ -290,6 +290,26 @@ Example:
       #send {
         margin:auto 5px;;
       }
+      #newChat{
+        width: 100%;
+        height: 100%;
+        background-color:rgba(0,0,0,0.5);
+      }
+      #newChat > div {
+        height: 150px;
+        width: 100%;
+        margin:auto 15px;
+        background-color: #eee;
+        border: 2px solid #333;
+        border-radius: 10px;
+        position: relative;
+      }
+      #newChat > div > #close {
+        position: absolute;
+        top:0;right: 0;
+        width: 35px;
+        height: 35px;
+      }
     </style>
 
     <firebase-collection
@@ -309,7 +329,7 @@ Example:
     <div class="vertical layout structure">
       <!-- header -->
       <div class="header horizontal layout">
-        <paper-icon-button rotate$="{{show_menu}}"on-tap="toggleBar" icon="{{menu_icon}}"></paper-icon-button>
+        <paper-icon-button rotate$="{{show_menu}}" on-tap="toggleBar" icon="{{menu_icon}}"></paper-icon-button>
         <p class="flex center">{{chat_title}}</p>
         <div class="center occupancyInfo" title="">
           <iron-icon icon="account-circle"></iron-icon>
@@ -373,8 +393,7 @@ Example:
               <p class="user " on-click="openChat">{{item}}</p>
             </template>
             <hr>
-            <p>Crear nuevo Chat</p>
-            <paper-fab icon="add" mini class="add" on-tap="addNewChat"></paper-fab>
+            <paper-fab icon="add" mini class="add" on-tap="createChat"></paper-fab>
           </div>
         </div>
 
@@ -398,6 +417,15 @@ Example:
                 <paper-button on-tap="createChat">Create Chat</paper-button>
               </div>
             </template>
+          </div>
+
+
+          <div id="newChat" class="fit horizontal layout" hidden>
+            <div class="center vertical layout" style="text-align:center">
+              <paper-input placeholder="Indique el nombre del nuevo chat"></paper-input>
+              <paper-button class="center">Crear</paper-button>
+              <paper-icon-button id="close" icon="close"></paper-icon-button>
+            </div>
           </div>
         </div>
       </div>
@@ -667,11 +695,14 @@ Example:
         this.toggleBar();
       },
       createChat: function(){
-        console.log("TODO crear chat");
+        console.log("TODO");
+        if (this.show_menu) this.toggleBar();
+        this.$.newChat.hidden = false;
       },
       _moveBar: function(e){
+
         this.$.bar.style.top = e.target.scrollTop + "px";
-        
+
       }
     });
   </script>
